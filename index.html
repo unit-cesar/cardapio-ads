@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cardápio Digital</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .menu, .cart, .order-details, .order-summary, .order-history {
+            margin: 20px 0;
+        }
+        .cart-summary {
+            border-top: 1px solid #ccc;
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+        .order-details, .order-summary {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center my-4">Cardápio Digital</h1>
+        <div class="menu">
+            <h2>Hambúrgueres</h2>
+            <div class="list-group">
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <input type="checkbox" class="item-checkbox" data-name="Cheeseburger" data-price="10"> Cheeseburger - R$10.00
+                    </div>
+                    <input type="number" min="1" value="1" class="item-quantity form-control w-25" disabled>
+                </div>
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <input type="checkbox" class="item-checkbox" data-name="Hamburger" data-price="8"> Hamburger - R$8.00
+                    </div>
+                    <input type="number" min="1" value="1" class="item-quantity form-control w-25" disabled>
+                </div>
+            </div>
+            <h2 class="mt-3">Salgados</h2>
+            <div class="list-group">
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <input type="checkbox" class="item-checkbox" data-name="Coxinha" data-price="5"> Coxinha - R$5.00
+                    </div>
+                    <input type="number" min="1" value="1" class="item-quantity form-control w-25" disabled>
+                </div>
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <input type="checkbox" class="item-checkbox" data-name="Pastel" data-price="4"> Pastel - R$4.00
+                    </div>
+                    <input type="number" min="1" value="1" class="item-quantity form-control w-25" disabled>
+                </div>
+            </div>
+            <h2 class="mt-3">Bebidas</h2>
+            <div class="list-group">
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <input type="checkbox" class="item-checkbox" data-name="Refrigerante" data-price="3"> Refrigerante - R$3.00
+                    </div>
+                    <input type="number" min="1" value="1" class="item-quantity form-control w-25" disabled>
+                </div>
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <input type="checkbox" class="item-checkbox" data-name="Suco" data-price="4"> Suco - R$4.00
+                    </div>
+                    <input type="number" min="1" value="1" class="item-quantity form-control w-25" disabled>
+                </div>
+            </div>
+        </div>
+        <div class="cart">
+            <h2 class="mt-5">Carrinho de Compras</h2>
+            <div class="cart-items list-group"></div>
+            <div class="cart-summary">
+                <p>Subtotal: R$<span class="cart-total">0.00</span></p>
+                <p>Taxa de Entrega: R$3.00</p>
+                <p>Total: R$<span class="cart-total-with-delivery">3.00</span></p>
+                <button class="btn btn-primary" id="btn-send-to-car" onclick="showOrderDetails()">Finalizar Pedido</button>
+            </div>
+        </div>
+        <div class="order-details">
+            <h2>Detalhes do Pedido</h2>
+            <div class="form-group">
+                <label>Nome Completo: <input type="text" id="customer-name" class="form-control"></label>
+            </div>
+            <div class="form-group">
+                <label>Endereço: <input type="text" id="customer-address" class="form-control"></label>
+            </div>
+            <div class="form-group">
+                <label>Pagamento:
+                    <select id="payment-method" class="form-control">
+                        <option value="credit">Cartão de Crédito</option>
+                        <option value="debit">Cartão de Débito</option>
+                        <option value="pix">Pix</option>
+                    </select>
+                </label>
+            </div>
+            <button class="btn btn-primary" onclick="confirmOrder()">Confirmar Pedido</button>
+            <button class="btn btn-secondary" onclick="window.location.reload()">Cancelar</button>
+        </div>
+        <div class="order-summary">
+            <h2>Resumo do Pedido</h2>
+            <div class="summary-details"></div>
+            <button class="btn btn-primary" onclick="completeOrder()">Concluir Pedido</button>
+            <button class="btn btn-secondary" onclick="window.location.reload()">Cancelar</button>
+        </div>
+        <div class="order-history mt-5"> 
+            <h2>Histórico de Pedidos</h2>
+            <div class="list-group" id="no-order">Não há pedidos registrados.</div>
+            <div class="list-group" id="order-history-list"></div>
+        </div>
+    </div>
+    
+</body>
+</html>
+<script>
+    const cartItems = [];
+    const deliveryFee = 3.00;
+    const itemCheckboxes = document.querySelectorAll('.item-checkbox');
+    const itemQuantities = document.querySelectorAll('.item-quantity');
+    const cartItemsContainer = document.querySelector('.cart-items');
+    const cartTotal = document.querySelector('.cart-total');
+    const cartTotalWithDelivery = document.querySelector('.cart-total-with-delivery');
+    const orderDetails = document.querySelector('.order-details');
+    const orderHistory = document.querySelector('.order-history');
+    const orderSummary = document.querySelector('.order-summary');
+    const menu = document.querySelector('.menu');
+    const cart = document.querySelector('.cart');
+    const summaryDetails = document.querySelector('.summary-details');
+    const orderHistoryList = document.getElementById('order-history-list');
+    const btnSendToCar = document.getElementById('btn-send-to-car');
+
+    itemCheckboxes.forEach((checkbox, index) => {
+        checkbox.addEventListener('change', () => {
+            itemQuantities[index].disabled = !checkbox.checked;
+            if (!checkbox.checked) {
+                itemQuantities[index].value = 1;
+            }
+            updateCart();
+        });
+    });
+
+    itemQuantities.forEach(quantity => {
+        quantity.addEventListener('input', updateCart);
+    });
+
+    function updateCart() {
+        cartItems.length = 0;
+        itemCheckboxes.forEach((checkbox, index) => {
+            if (checkbox.checked) {
+                const itemName = checkbox.getAttribute('data-name');
+                const itemPrice = parseFloat(checkbox.getAttribute('data-price'));
+                const itemQuantity = parseInt(itemQuantities[index].value);
+                cartItems.push({ name: itemName, price: itemPrice, quantity: itemQuantity });
+            }
+        });
+        renderCart();
+    }
+
+    function renderCart() {
+        cartItemsContainer.innerHTML = '';
+        let total = 0;
+        cartItems.forEach(item => {
+            total += item.price * item.quantity;
+            const itemElement = document.createElement('div');
+            itemElement.classList.add('list-group-item');
+            itemElement.textContent = `${item.name} x${item.quantity} - R$${(item.price * item.quantity).toFixed(2)}`;
+            cartItemsContainer.appendChild(itemElement);
+        });
+        cartTotal.textContent = total.toFixed(2);
+        cartTotalWithDelivery.textContent = (total + deliveryFee).toFixed(2);
+    }
+
+    function showOrderDetails() {
+        if (cartItems.length > 0) {
+            
+            btnSendToCar.style.display = 'none';
+            menu.style.display = 'none';
+            cart.style.display = 'none';
+            orderHistory.style.display = 'none';
+
+            orderDetails.style.display = 'block';
+            window.scrollTo({ top: orderDetails.offsetTop, behavior: 'smooth' });
+        } else {
+            alert('Adicione itens ao carrinho antes de finalizar o pedido.');
+        }
+    }
+
+    function confirmOrder() {
+        const customerName = document.getElementById('customer-name').value;
+        const customerAddress = document.getElementById('customer-address').value;
+        const paymentMethodSelect = document.getElementById('payment-method');
+        const paymentMethod = paymentMethodSelect.options[paymentMethodSelect.selectedIndex].text;
+        if (customerName && customerAddress) {
+            orderDetails.style.display = 'none';
+            orderSummary.style.display = 'block';
+            summaryDetails.innerHTML = `
+                <p><strong>Nome:</strong> ${customerName}</p>
+                <p><strong>Endereço:</strong> ${customerAddress}</p>
+                <p><strong>Pagamento:</strong> ${paymentMethod}</p>
+                <h3>Itens:</h3>
+            `;
+            cartItems.forEach(item => {
+                const itemElement = document.createElement('div');
+                itemElement.textContent = `${item.name} x${item.quantity} - R$${(item.price * item.quantity).toFixed(2)}`;
+                summaryDetails.appendChild(itemElement);
+            });
+            const totalElement = document.createElement('p');
+            totalElement.innerHTML = `<strong>Total:</strong> R$${cartTotalWithDelivery.textContent}`;
+            summaryDetails.appendChild(totalElement);
+            window.scrollTo({ top: orderSummary.offsetTop, behavior: 'smooth' });
+        } else {
+            alert('Por favor, preencha todos os detalhes do pedido.');
+        }
+    }
+
+    function completeOrder() {
+        const customerName = document.getElementById('customer-name').value;
+        const customerAddress = document.getElementById('customer-address').value;
+        const paymentMethodSelect = document.getElementById('payment-method');
+        const paymentMethod = paymentMethodSelect.options[paymentMethodSelect.selectedIndex].text;
+        const orderTotal = parseFloat(cartTotalWithDelivery.textContent);
+
+        const order = {
+            customerName,
+            customerAddress,
+            paymentMethod,
+            items: [...cartItems],
+            total: orderTotal
+        };
+
+        saveOrder(order);
+        alert('Pedido concluído com sucesso!');
+        location.reload();
+    }
+
+    function saveOrder(order) {
+        const existingOrders = getOrders();
+        existingOrders.push(order);
+        document.cookie = `orders=${JSON.stringify(existingOrders)};path=/`;
+    }
+
+    function getOrders() {
+        const cookieValue = document.cookie.split('; ').find(row => row.startsWith('orders='));
+        return cookieValue ? JSON.parse(cookieValue.split('=')[1]) : [];
+    }
+
+    function loadOrderHistory() {
+        const orders = getOrders();
+        orderHistoryList.innerHTML = '';
+        orders.forEach((order, index) => {
+            const orderElement = document.createElement('div');
+            orderElement.classList.add('list-group-item');
+            orderElement.innerHTML = `
+                <p><strong>Nome:</strong> ${order.customerName}</p>
+                <p><strong>Endereço:</strong> ${order.customerAddress}</p>
+                <p><strong>Pagamento:</strong> ${order.paymentMethod}</p>
+                <p><strong>Total:</strong> R$${order.total.toFixed(2)}</p>
+                <p><strong>Situação:</strong> Aguardando confirmação do Retaurante</p>
+                <button class="btn btn-danger" onclick="cancelOrder(${index})">Cancelar Pedido</button>
+            `;
+            orderHistoryList.appendChild(orderElement);
+        });
+
+        if(document.querySelector('#order-history-list').children.length > 0) {
+            document.querySelector('#no-order').style.display = 'none';
+        }else{
+            document.querySelector('#no-order').style.display = 'block';
+        }
+    }
+
+    function cancelOrder(index) {
+        const orders = getOrders();
+        orders.splice(index, 1);
+        document.cookie = `orders=${JSON.stringify(orders)};path=/`;
+        loadOrderHistory();
+        alert('Seu pedido foi cancelado!');
+    }
+
+    window.onload = function() {
+        loadOrderHistory();
+    };
+</script>
