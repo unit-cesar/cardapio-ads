@@ -1,6 +1,7 @@
 **CARDÁPIO DIGITAL**
 
 Claudio Cesar de Azevedo Junior
+
 Superior de Tecnologia em Análise e Desenvolvimento de Sistemas
 
 O sistema de Cardápio Digital é uma solução moderna e eficiente que transforma a experiência gastronômica, tanto para os clientes quanto para os proprietários de restaurantes. Este sistema permite que os clientes visualizem o cardápio, façam pedidos e personalizem suas escolhas diretamente de seus dispositivos móveis ou tablets disponíveis no estabelecimento. Ao integrar tecnologias HTML, CSS e JavaScript, criamos uma interface interativa, intuitiva e visualmente atraente, que não só facilita o processo de pedidos, mas também melhora a satisfação do cliente.
